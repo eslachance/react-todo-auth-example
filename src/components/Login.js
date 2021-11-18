@@ -1,8 +1,8 @@
-import React, { useEffect, useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { StoreContext } from "../store";
 
 const LoginForm = () => {
-  const [{ auth }, dispatch] = useContext(StoreContext);
+  const [, dispatch] = useContext(StoreContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 

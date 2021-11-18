@@ -12,27 +12,54 @@ const initiaState = {
 };
 
 const reducer = async (state, action) => {
-  console.log("ACTION::: ", action);
   switch (action.type) {
     case "ADD_TODO":
-      return {...state, todos: state.todos.concat(action.payload)};
+      try {
+        await fetch("/api/todos", {
+          method: "POST",
+          body: JSON.stringify(action.payload),
+        });
+        return { ...state, todos: state.todos.concat(action.payload) };
+      } catch(err) {
+        console.error(err);
+        return {
+          ...state,
+          err
+        }
+      }
     case "DELETE_TODO":
-      return {
-        ...state,
-        todos: state.todos.filter((a) => a.id !== action.payload),
-      };
+      try {
+        await fetch("/api/todos/" + action.payload, { method: "DELETE" });
+        return {
+          ...state,
+          todos: state.todos.filter((a) => a.id !== action.payload),
+        };
+      } catch(err) {
+        return {
+          ...state,
+          err,
+        };
+      }
     case "TOGGLE_TODO":
-      return {
-        ...state,
-        todos: (a) => ({
-          ...a,
-          isComplete: a.id === action.payload ? !a.isComplete : a.isComplete,
-        }),
-      };
-    case "FETCH_ALL_TODOS": 
+      try {
+        await fetch("/api/todos/toggle/" + action.payload)
+          .then((res) => res.json());
+        return {
+          ...state,
+          todos: state.todos.map((a) => ({
+            ...a,
+            isComplete: a.id === action.payload ? !a.isComplete : a.isComplete,
+          })),
+        };
+      } catch(err) {
+        return {
+          ...state,
+          err,
+        };
+      }
+    case "FETCH_ALL_TODOS":
       const allTodoRes = await fetch("/api/todos").then(res => res.json());
-      state.todos = allTodoRes;
-      return state;
+      return { ...state, todos: allTodoRes };
     case "LOGIN":
       const loginRes = await fetch("/api/login", {
         method: "POST",
@@ -42,7 +69,11 @@ const reducer = async (state, action) => {
         body: JSON.stringify({ username: action.payload.username, password: action.payload.password }),
       }).then((res) => res.json())
       if (loginRes.success) {
-        state.auth = { isLoggedIn: true, username: action.payload.username };
+        return {
+          ...state,
+          auth: { isLoggedIn: true, username: action.payload.username },
+          todos: []
+        };
       } else {
         console.error(loginRes.error);
       }
@@ -50,22 +81,25 @@ const reducer = async (state, action) => {
     case "LOGOUT":
       const logoutRes = await fetch("/api/logout").then((res) => res.json());
       if (logoutRes.success) {
-        state.auth = { isLoggedIn: false, username: "" };
+        return {
+          ...state,
+          auth: { isLoggedIn: false, username: "" },
+        };
       } else {
         console.error(logoutRes.error);
       }
       break;
     case "GET_USER_INFO":
-      console.log(state);
-      if(state.isPageLoaded) return state;
-      state.isPageLoaded = true;
+      const tempState = { ...state }
+      if (tempState.isPageLoaded) return state;
+      tempState.isPageLoaded = true;
       const userInfo = await fetch("/api/me").then((res) => res.json());
       if (userInfo.success) {
-        state.auth = { isLoggedIn: true, username: userInfo.username };
+        tempState.auth = { isLoggedIn: true, username: userInfo.username };
       } else {
         console.error(userInfo.error);
       }
-      return state;
+      return tempState;
     default:
       return state;
   }

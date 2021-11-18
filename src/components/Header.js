@@ -4,16 +4,16 @@ import { StoreContext } from "../store";
 const Header = () => {
   const [state, dispatch] = useContext(StoreContext);
   useEffect(() => {
-    if (!state.auth.isLoggedIn) {
-      dispatch({
-        type: "GET_USER_INFO",
-      });
-    } else {
-      dispatch({
-        type: "FETCH_ALL_TODOS",
-      });
-    }
-  }, [state.auth, dispatch]);
+    dispatch({
+      type: "GET_USER_INFO",
+    });
+  }, [dispatch]);
+
+  const logout = () => {
+    dispatch({
+      type: "LOGOUT"
+    });
+  }
 
   return (
     <>
@@ -32,9 +32,13 @@ const Header = () => {
             Discord Help
           </a>
           {state.auth.isLoggedIn && (
-            <a className="p-2 text-dark" href="#">
-              LOGOUT
-            </a>
+            <button
+              type="button"
+              onClick={logout}
+              class="btn btn-outline-dark me-2"
+            >
+              Logout
+            </button>
           )}
         </nav>
       </div>

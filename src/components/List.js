@@ -1,8 +1,14 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { StoreContext } from "../store";
+import { marked } from "marked";
 
 const List = () => {
   const [{ todos }, dispatch] = useContext(StoreContext);
+  useEffect(() => {
+    dispatch({
+      type: "FETCH_ALL_TODOS",
+    });
+  }, []);
   return (
     <div className="list-wrapper">
       <ul className="d-flex flex-column-reverse todo-list">
@@ -27,7 +33,7 @@ const List = () => {
                     })
                   }
                 />
-                {el.title}
+                <span dangerouslySetInnerHTML={{__html: marked.parse(el.title)}}></span>
                 <i className="input-helper" />
               </label>
             </div>
